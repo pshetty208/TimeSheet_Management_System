@@ -7,7 +7,6 @@ import org.tss.model.Role;
 import org.tss.model.User;
 import org.tss.repository.UserRepository;
 import org.tss.repository.RoleRepository;
-
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
