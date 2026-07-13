@@ -1,0 +1,41 @@
+<div class="timesheets-container">
+  <h2>TimeSheets</h2>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="loading" class="loading">Loading timesheets...</div>
+  
+  <table *ngIf="!loading && timesheets.length > 0" class="timesheets-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Employee</th>
+        <th>Period</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let ts of timesheets">
+        <td>{{ ts.id }}</td>
+        <td>{{ ts.contract.employee.username }}</td>
+        <td>{{ ts.periodStart }} to {{ ts.periodEnd }}</td>
+        <td>
+          <span [ngClass]="'status ' + ts.status.toLowerCase()">
+            {{ ts.status | replace: '_': ' ' }}
+          </span>
+        </td>
+        <td>
+          <button *ngIf="ts.status === 'IN_PROGRESS'" (click)="signByEmployee(ts.id)" 
+            class="btn btn-sm btn-primary">Sign by Employee</button>
+          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE'" (click)="signBySupervisor(ts.id)" 
+            class="btn btn-sm btn-primary">Sign by Supervisor</button>
+          <button *ngIf="ts.status === 'SIGNED_BY_SUPERVISOR'" (click)="archive(ts.id)" 
+            class="btn btn-sm btn-success">Archive</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && timesheets.length === 0" class="no-data">
+    No timesheets found
+  </div>
+</div>

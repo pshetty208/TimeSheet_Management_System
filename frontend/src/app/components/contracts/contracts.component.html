@@ -1,0 +1,43 @@
+<div class="contracts-container">
+  <h2>Contracts</h2>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="loading" class="loading">Loading contracts...</div>
+  
+  <table *ngIf="!loading && contracts.length > 0" class="contracts-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Employee</th>
+        <th>Supervisor</th>
+        <th>Hours/Week</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let contract of contracts">
+        <td>{{ contract.id }}</td>
+        <td>{{ contract.employee.username }}</td>
+        <td>{{ contract.supervisor.username }}</td>
+        <td>{{ contract.workingHoursPerWeek }}</td>
+        <td>{{ contract.startDate }}</td>
+        <td>{{ contract.endDate || '-' }}</td>
+        <td>
+          <span [ngClass]="'status ' + contract.status.toLowerCase()">
+            {{ contract.status }}
+          </span>
+        </td>
+        <td>
+          <button *ngIf="contract.status === 'PREPARED'" (click)="startContract(contract.id)" class="btn btn-sm btn-success">Start</button>
+          <button (click)="deleteContract(contract.id)" class="btn btn-sm btn-danger">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && contracts.length === 0" class="no-data">
+    No contracts found
+  </div>
+</div>

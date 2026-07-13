@@ -1,0 +1,37 @@
+<div class="dashboard">
+  <nav class="navbar">
+    <div class="navbar-brand">TimeSheet Management System</div>
+    <div class="navbar-menu">
+      <div *ngIf="currentUser" class="navbar-info">
+        <span>Welcome, {{ currentUser.username }}</span>
+        <button (click)="logout()" class="btn btn-logout">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="sidebar">
+      <h3>Menu</h3>
+      <ul>
+        <li><a routerLink="/contracts" routerLinkActive="active">Contracts</a></li>
+        <li><a routerLink="/timesheets" routerLinkActive="active">TimeSheets</a></li>
+        <li><a routerLink="/time-entries" routerLinkActive="active">Time Entries</a></li>
+      </ul>
+    </div>
+
+    <div class="content">
+      <div class="welcome-card">
+        <h1>Welcome to TimeSheet Management System</h1>
+        <p>Your roles: <strong>{{ currentUser?.roles.join(', ') }}</strong></p>
+        <p>Select a menu item from the left to get started.</p>
+      </div>
+
+      <div class="quick-stats" *ngIf="hasRole('ADMINISTRATOR')">
+        <h2>Quick Stats</h2>
+        <div class="stat-box">
+          <p>Coming soon: Dashboard analytics and reports</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
