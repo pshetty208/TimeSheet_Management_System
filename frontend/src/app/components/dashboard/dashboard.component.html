@@ -22,7 +22,7 @@
     <div class="content">
       <div class="welcome-card">
         <h1>Welcome to TimeSheet Management System</h1>
-        <p>Your roles: <strong>{{ currentUser?.roles.join(', ') }}</strong></p>
+        <p>Your roles: <strong>{{ currentUser ? currentUser.roles.join(', ') : '' }}</strong></p>
         <p>Select a menu item from the left to get started.</p>
       </div>
 

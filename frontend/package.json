@@ -4,9 +4,9 @@
   "description": "TimeSheet Management System - Angular Frontend",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider ng serve",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider ng build",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider ng test",
     "lint": "ng lint"
   },
   "private": true,

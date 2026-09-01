@@ -1,5 +1,14 @@
 <div class="contracts-container">
   <h2>Contracts</h2>
+  <form *ngIf="auth.hasAnyRole(['SUPERVISOR','ASSISTANT','ADMINISTRATOR'])" (ngSubmit)="createContract()" class="contract-form">
+    <input name="name" [(ngModel)]="draft.name" placeholder="Contract name" required>
+    <select name="employee" [(ngModel)]="draft.employeeId" required><option [ngValue]="null">Employee</option><option *ngFor="let u of users" [value]="u.id">{{u.username}}</option></select>
+    <select name="supervisor" [(ngModel)]="draft.supervisorId" required><option [ngValue]="null">Supervisor</option><option *ngFor="let u of users" [value]="u.id">{{u.username}}</option></select>
+    <input name="start" type="date" [(ngModel)]="draft.startDate" required><input name="end" type="date" [(ngModel)]="draft.endDate" required>
+    <select name="frequency" [(ngModel)]="draft.frequency"><option>WEEKLY</option><option>MONTHLY</option></select>
+    <input name="hours" type="number" min="1" [(ngModel)]="draft.workingHoursPerWeek" placeholder="Hours/week">
+    <button type="submit">Create prepared contract</button>
+  </form>
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
   <div *ngIf="loading" class="loading">Loading contracts...</div>
   

@@ -41,4 +41,6 @@ export class TimeSheetService {
   archive(id: number): Observable<TimeSheet> {
     return this.http.post<TimeSheet>(`${this.apiUrl}/${id}/archive`, {});
   }
+  revoke(id: number): Observable<TimeSheet> { return this.http.post<TimeSheet>(`${this.apiUrl}/${id}/revoke-employee-signature`, {}); }
+  requestChanges(id: number): Observable<TimeSheet> { return this.http.post<TimeSheet>(`${this.apiUrl}/${id}/request-changes`, {}); }
 }

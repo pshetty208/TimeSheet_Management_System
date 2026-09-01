@@ -8,6 +8,8 @@ import org.tss.repository.TimeSheetRepository;
 import org.tss.repository.UserRepository;
 import org.tss.service.EmailService;
 import java.util.*;
+import java.time.LocalDate;
+import org.tss.repository.ContractRepository;
 
 @Component
 public class ReminderScheduler {
@@ -15,60 +17,67 @@ public class ReminderScheduler {
     private final TimeSheetRepository timeSheetRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final ContractRepository contractRepository;
 
-    public ReminderScheduler(TimeSheetRepository timeSheetRepository, UserRepository userRepository, EmailService emailService) {
+    public ReminderScheduler(TimeSheetRepository timeSheetRepository, UserRepository userRepository, EmailService emailService,
+                             ContractRepository contractRepository) {
         this.timeSheetRepository = timeSheetRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.contractRepository = contractRepository;
     }
 
-    @Scheduled(cron = "0 9 * * MON") // Every Monday at 9:00 AM
+    @Scheduled(cron = "0 0 9 * * *")
     public void sendEmployeeReminders() {
-        List<TimeSheet> inProgressSheets = timeSheetRepository.findAllInProgress();
-        Map<Long, Integer> employeeTimeSheetCount = new HashMap<>();
+        List<TimeSheet> inProgressSheets = timeSheetRepository.findByStatusAndPeriodEndLessThanEqual("IN_PROGRESS", LocalDate.now());
+        Map<User, Integer> employeeTimeSheetCount = new HashMap<>();
 
         for (TimeSheet ts : inProgressSheets) {
-            Long employeeId = ts.getContract().getEmployee().getId();
-            employeeTimeSheetCount.put(employeeId, employeeTimeSheetCount.getOrDefault(employeeId, 0) + 1);
+            User employee = ts.getContract().getEmployee();
+            employeeTimeSheetCount.merge(employee, 1, Integer::sum);
         }
 
-        for (Map.Entry<Long, Integer> entry : employeeTimeSheetCount.entrySet()) {
-            Optional<User> employee = userRepository.findById(entry.getKey());
-            if (employee.isPresent()) {
-                System.out.println("Sending reminder to employee: " + employee.get().getUsername());
-                // Note: Email sending would require actual email configuration
-                // emailService.sendEmployeeSubmissionReminder(employeeEmail, employee.get().getUsername());
-            }
+        for (Map.Entry<User, Integer> entry : employeeTimeSheetCount.entrySet()) {
+            User employee = entry.getKey();
+            if (employee.getEmailAddress() != null) emailService.sendEmployeeSubmissionReminder(employee);
         }
     }
 
-    @Scheduled(cron = "0 10 * * MON") // Every Monday at 10:00 AM
+    @Scheduled(cron = "0 0 10 * * *")
     public void sendSupervisorReminders() {
         List<TimeSheet> signedByEmployeeSheets = timeSheetRepository.findAllSignedByEmployee();
-        Map<Long, Integer> supervisorTimeSheetCount = new HashMap<>();
+        Map<User, Integer> supervisorTimeSheetCount = new HashMap<>();
 
         for (TimeSheet ts : signedByEmployeeSheets) {
-            Long supervisorId = ts.getContract().getSupervisor().getId();
-            supervisorTimeSheetCount.put(supervisorId, supervisorTimeSheetCount.getOrDefault(supervisorId, 0) + 1);
+            supervisorTimeSheetCount.merge(ts.getContract().getSupervisor(), 1, Integer::sum);
+            ts.getContract().getAssistants().forEach(a -> supervisorTimeSheetCount.merge(a, 1, Integer::sum));
         }
 
-        for (Map.Entry<Long, Integer> entry : supervisorTimeSheetCount.entrySet()) {
-            Optional<User> supervisor = userRepository.findById(entry.getKey());
-            if (supervisor.isPresent()) {
-                System.out.println("Sending approval reminder to supervisor: " + supervisor.get().getUsername() + " with " + entry.getValue() + " pending timesheets");
-                // emailService.sendSupervisorApprovalReminder(supervisorEmail, supervisor.get().getUsername(), entry.getValue());
-            }
+        for (Map.Entry<User, Integer> entry : supervisorTimeSheetCount.entrySet()) {
+            User person = entry.getKey();
+            if (person.getEmailAddress() != null) emailService.sendSupervisorApprovalReminder(person, entry.getValue());
         }
     }
 
-    @Scheduled(cron = "0 11 * * MON") // Every Monday at 11:00 AM
+    @Scheduled(cron = "0 0 11 * * *")
     public void sendArchivalReminders() {
         List<TimeSheet> signedByBothSheets = timeSheetRepository.findAllSignedBySupervisor();
 
-        if (!signedByBothSheets.isEmpty()) {
-            System.out.println("Sending archival reminder for " + signedByBothSheets.size() + " timesheets");
-            // In production, you'd fetch all secretaries and send individual reminders
-            // emailService.sendArchivalReminder(secretaryEmail, secretaryName, signedByBothSheets.size());
+        Map<User,Integer> recipients = new HashMap<>();
+        signedByBothSheets.forEach(t -> t.getContract().getSecretaries().forEach(s -> recipients.merge(s, 1, Integer::sum)));
+        recipients.forEach((person,count) -> { if (person.getEmailAddress() != null)
+            emailService.sendArchivalReminder(person, count); });
+    }
+
+    @Scheduled(cron = "0 30 2 * * *")
+    public void purgeExpiredArchives() {
+        for (TimeSheet sheet : timeSheetRepository.findByStatusAndSignedBySupervisorBefore("ARCHIVED", LocalDate.now())) {
+            if (sheet.getSignedBySupervisor() != null && sheet.getSignedBySupervisor()
+                    .plusMonths(sheet.getContract().getArchiveDurationMonths()).isBefore(LocalDate.now())) {
+                var contract = sheet.getContract();
+                timeSheetRepository.delete(sheet);
+                if (timeSheetRepository.findByContractIdOrderByPeriodStart(contract.getId()).isEmpty()) contractRepository.delete(contract);
+            }
         }
     }
 

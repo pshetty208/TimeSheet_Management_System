@@ -21,6 +21,12 @@ public class TimeSheet {
 
     private String status;
 
+    private double hoursDue;
+    private LocalDate signedByEmployee;
+    private LocalDate signedBySupervisor;
+    private String employeeSignature;
+    private String supervisorSignature;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimeEntry> entries = new ArrayList<>();
 
@@ -38,4 +44,14 @@ public class TimeSheet {
     public void setStatus(String status) { this.status = status; }
     public List<TimeEntry> getEntries() { return entries; }
     public void setEntries(List<TimeEntry> entries) { this.entries = entries; }
+    public double getHoursDue() { return hoursDue; }
+    public void setHoursDue(double hoursDue) { this.hoursDue = hoursDue; }
+    public LocalDate getSignedByEmployee() { return signedByEmployee; }
+    public void setSignedByEmployee(LocalDate signedByEmployee) { this.signedByEmployee = signedByEmployee; }
+    public LocalDate getSignedBySupervisor() { return signedBySupervisor; }
+    public void setSignedBySupervisor(LocalDate signedBySupervisor) { this.signedBySupervisor = signedBySupervisor; }
+    public String getEmployeeSignature() { return employeeSignature; }
+    public void setEmployeeSignature(String employeeSignature) { this.employeeSignature = employeeSignature; }
+    public String getSupervisorSignature() { return supervisorSignature; }
+    public void setSupervisorSignature(String supervisorSignature) { this.supervisorSignature = supervisorSignature; }
 }

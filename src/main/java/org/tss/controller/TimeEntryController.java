@@ -45,20 +45,21 @@ public class TimeEntryController {
         te.setEndTime(req.getEndTime());
         te.setDescription(req.getDescription());
         te.setReportType(req.getReportType());
-        return ResponseEntity.status(HttpStatus.CREATED).body(timeEntryService.save(te));
+        if (req.getTimesheetId() == null) throw new org.tss.exception.ValidationException("timesheetId is required");
+        return ResponseEntity.status(HttpStatus.CREATED).body(timeEntryService.addToTimesheet(req.getTimesheetId(), te));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('EMPLOYEE')")
     public ResponseEntity<TimeEntry> update(@PathVariable Long id, @Valid @RequestBody TimeEntryRequest req) {
-        TimeEntry existing = timeEntryService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("TimeEntry not found with id: " + id));
+        if (req.getTimesheetId() == null) throw new org.tss.exception.ValidationException("timesheetId is required");
+        TimeEntry existing = new TimeEntry();
         existing.setDate(req.getDate());
         existing.setStartTime(req.getStartTime());
         existing.setEndTime(req.getEndTime());
         existing.setDescription(req.getDescription());
         existing.setReportType(req.getReportType());
-        return ResponseEntity.ok(timeEntryService.save(existing));
+        return ResponseEntity.ok(timeEntryService.updateInTimesheet(req.getTimesheetId(), id, existing));
     }
 
     @DeleteMapping("/{id}")

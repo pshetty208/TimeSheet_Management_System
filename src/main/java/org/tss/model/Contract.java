@@ -2,6 +2,8 @@ package org.tss.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "contracts")
@@ -16,6 +18,14 @@ public class Contract {
     @ManyToOne
     private User supervisor;
 
+    @ManyToMany
+    private Set<User> assistants = new HashSet<>();
+
+    @ManyToMany
+    private Set<User> secretaries = new HashSet<>();
+
+    private String name;
+
     private int workingHoursPerWeek;
 
     private LocalDate startDate;
@@ -25,6 +35,11 @@ public class Contract {
     private String frequency;
 
     private double vacationEntitlement;
+
+    private int workingDaysPerWeek = 5;
+    private int vacationDaysPerYear = 20;
+    private int archiveDurationMonths = 24;
+    private LocalDate terminationDate;
 
     private String status;
 
@@ -48,4 +63,18 @@ public class Contract {
     public void setVacationEntitlement(double vacationEntitlement) { this.vacationEntitlement = vacationEntitlement; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public Set<User> getAssistants() { return assistants; }
+    public void setAssistants(Set<User> assistants) { this.assistants = assistants; }
+    public Set<User> getSecretaries() { return secretaries; }
+    public void setSecretaries(Set<User> secretaries) { this.secretaries = secretaries; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public int getWorkingDaysPerWeek() { return workingDaysPerWeek; }
+    public void setWorkingDaysPerWeek(int workingDaysPerWeek) { this.workingDaysPerWeek = workingDaysPerWeek; }
+    public int getVacationDaysPerYear() { return vacationDaysPerYear; }
+    public void setVacationDaysPerYear(int vacationDaysPerYear) { this.vacationDaysPerYear = vacationDaysPerYear; }
+    public int getArchiveDurationMonths() { return archiveDurationMonths; }
+    public void setArchiveDurationMonths(int archiveDurationMonths) { this.archiveDurationMonths = archiveDurationMonths; }
+    public LocalDate getTerminationDate() { return terminationDate; }
+    public void setTerminationDate(LocalDate terminationDate) { this.terminationDate = terminationDate; }
 }

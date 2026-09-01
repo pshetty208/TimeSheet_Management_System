@@ -10,21 +10,33 @@ import org.tss.model.Contract;
 import org.tss.service.ContractService;
 
 import java.util.List;
+import org.tss.dto.ContractStatistics;
+import org.springframework.security.core.Authentication;
+import org.tss.service.AccessService;
 
 @RestController
 @RequestMapping("/api/contracts")
 public class ContractController {
 
     private final ContractService contractService;
+    private final AccessService access;
 
-    public ContractController(ContractService contractService) {
+    public ContractController(ContractService contractService, AccessService access) {
         this.contractService = contractService;
+        this.access = access;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
-    public List<Contract> list() {
-        return contractService.findAll();
+    public List<Contract> list(Authentication auth) {
+        return contractService.findAll().stream().filter(c -> access.contract(c, auth)).toList();
+    }
+
+    @GetMapping("/{id}")
+    public Contract get(@PathVariable Long id, Authentication auth) {
+        Contract c = contractService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contract(c, auth)) throw new org.tss.exception.UnauthorizedException("Not affiliated with this contract");
+        return c;
     }
 
     @PostMapping
@@ -65,5 +77,13 @@ public class ContractController {
     public ResponseEntity<Contract> terminate(@PathVariable Long id) {
         Contract c = contractService.terminateContract(id);
         return ResponseEntity.ok(c);
+    }
+
+    @GetMapping("/{id}/statistics")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
+    public ContractStatistics statistics(@PathVariable Long id, Authentication auth) {
+        Contract c = contractService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contract(c, auth)) throw new org.tss.exception.UnauthorizedException("Not affiliated with this contract");
+        return contractService.statistics(id);
     }
 }

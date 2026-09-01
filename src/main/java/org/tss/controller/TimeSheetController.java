@@ -10,21 +10,25 @@ import org.tss.model.TimeSheet;
 import org.tss.service.TimeSheetService;
 
 import java.util.List;
+import org.springframework.security.core.Authentication;
+import org.tss.service.AccessService;
 
 @RestController
 @RequestMapping("/api/timesheets")
 public class TimeSheetController {
 
     private final TimeSheetService timeSheetService;
+    private final AccessService access;
 
-    public TimeSheetController(TimeSheetService timeSheetService) {
+    public TimeSheetController(TimeSheetService timeSheetService, AccessService access) {
         this.timeSheetService = timeSheetService;
+        this.access = access;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
-    public List<TimeSheet> list() {
-        return timeSheetService.findAll();
+    public List<TimeSheet> list(Authentication auth) {
+        return timeSheetService.findAll().stream().filter(t -> access.timesheet(t, auth)).toList();
     }
 
     @GetMapping("/{id}")
@@ -82,4 +86,12 @@ public class TimeSheetController {
         TimeSheet ts = timeSheetService.archive(id);
         return ResponseEntity.ok(ts);
     }
+
+    @PostMapping("/{id}/revoke-employee-signature")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public TimeSheet revoke(@PathVariable Long id) { return timeSheetService.revokeEmployeeSignature(id); }
+
+    @PostMapping("/{id}/request-changes")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
+    public TimeSheet requestChanges(@PathVariable Long id) { return timeSheetService.requestChanges(id); }
 }

@@ -27,6 +27,7 @@ public class UserService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+    public User save(User user) { return userRepository.save(user); }
 
     public User register(String username, String rawPassword, String roleName) {
         if (username == null || username.trim().isEmpty()) {

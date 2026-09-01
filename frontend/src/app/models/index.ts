@@ -2,6 +2,12 @@ export interface User {
   id: number;
   username: string;
   roles: string[];
+  firstName?: string;
+  lastName?: string;
+  emailAddress?: string;
+  consent?: boolean;
+  universityStaff?: boolean;
+  preferredLanguage?: string;
 }
 
 export interface LoginRequest {
@@ -25,6 +31,11 @@ export interface Contract {
   frequency: string;
   vacationEntitlement: number;
   status: string;
+  name?: string;
+  workingDaysPerWeek: number;
+  vacationDaysPerYear: number;
+  archiveDurationMonths: number;
+  terminationDate?: string;
 }
 
 export interface TimeSheet {
@@ -34,6 +45,9 @@ export interface TimeSheet {
   periodEnd: string;
   status: string;
   entries: TimeEntry[];
+  hoursDue: number;
+  signedByEmployee?: string;
+  signedBySupervisor?: string;
 }
 
 export interface TimeEntry {
@@ -47,6 +61,7 @@ export interface TimeEntry {
 }
 
 export interface TimeEntryRequest {
+  timesheetId: number;
   date: string;
   startTime?: string;
   endTime?: string;

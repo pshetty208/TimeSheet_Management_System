@@ -10,6 +10,7 @@
         <th>Employee</th>
         <th>Period</th>
         <th>Status</th>
+        <th>Due / Reported</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -20,15 +21,19 @@
         <td>{{ ts.periodStart }} to {{ ts.periodEnd }}</td>
         <td>
           <span [ngClass]="'status ' + ts.status.toLowerCase()">
-            {{ ts.status | replace: '_': ' ' }}
+            {{ formatStatus(ts.status) }}
           </span>
         </td>
+        <td>{{ ts.hoursDue | number:'1.1-2' }} / {{ reported(ts) | number:'1.1-2' }}</td>
         <td>
-          <button *ngIf="ts.status === 'IN_PROGRESS'" (click)="signByEmployee(ts.id)" 
+          <button *ngIf="ts.status === 'IN_PROGRESS' && authService.hasRole('EMPLOYEE')" (click)="select(ts)" class="btn btn-sm">Report work</button>
+          <button *ngIf="ts.status === 'IN_PROGRESS' && authService.hasRole('EMPLOYEE')" (click)="signByEmployee(ts.id)"
             class="btn btn-sm btn-primary">Sign by Employee</button>
-          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE'" (click)="signBySupervisor(ts.id)" 
+          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && authService.hasRole('EMPLOYEE')" (click)="revoke(ts.id)" class="btn btn-sm">Revoke</button>
+          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && (authService.hasRole('SUPERVISOR') || authService.hasRole('ADMINISTRATOR'))" (click)="signBySupervisor(ts.id)"
             class="btn btn-sm btn-primary">Sign by Supervisor</button>
-          <button *ngIf="ts.status === 'SIGNED_BY_SUPERVISOR'" (click)="archive(ts.id)" 
+          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && (authService.hasRole('SUPERVISOR') || authService.hasRole('ASSISTANT'))" (click)="requestChanges(ts.id)" class="btn btn-sm">Request changes</button>
+          <button *ngIf="ts.status === 'SIGNED_BY_SUPERVISOR' && (authService.hasRole('SECRETARY') || authService.hasRole('ADMINISTRATOR'))" (click)="archive(ts.id)"
             class="btn btn-sm btn-success">Archive</button>
         </td>
       </tr>
@@ -39,3 +44,14 @@
     No timesheets found
   </div>
 </div>
+
+<section class="entry-editor" *ngIf="selected">
+  <h3>Report work: {{ selected.periodStart }} - {{ selected.periodEnd }}</h3>
+  <select [(ngModel)]="entry.reportType"><option>WORK</option><option>VACATION</option><option>SICK_LEAVE</option></select>
+  <input type="date" [(ngModel)]="entry.date">
+  <input *ngIf="entry.reportType === 'WORK'" type="time" [(ngModel)]="entry.startTime">
+  <input *ngIf="entry.reportType === 'WORK'" type="time" [(ngModel)]="entry.endTime">
+  <input placeholder="Description" [(ngModel)]="entry.description">
+  <button (click)="addEntry()">Save entry</button>
+  <ul><li *ngFor="let item of selected.entries">{{ item.date }} · {{ item.reportType }} · {{ item.hours }}h <button (click)="deleteEntry(item.id)">Delete</button></li></ul>
+</section>

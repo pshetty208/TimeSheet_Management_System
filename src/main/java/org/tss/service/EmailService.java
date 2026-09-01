@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.tss.model.User;
 
 @Service
 public class EmailService {
@@ -55,5 +56,21 @@ public class EmailService {
                 + "Please log in to the system and archive the completed timesheets.\n\n"
                 + "Best regards,\nTimeSheet Management System";
         sendReminderEmail(secretaryEmail, subject, body);
+    }
+
+    public void sendEmployeeSubmissionReminder(User user) {
+        if ("de".equals(user.getPreferredLanguage())) sendReminderEmail(user.getEmailAddress(), "Stundenzettel einreichen",
+                "Hallo " + user.getUsername() + ", bitte reichen Sie Ihren Stundenzettel ein.");
+        else sendEmployeeSubmissionReminder(user.getEmailAddress(), user.getUsername());
+    }
+    public void sendSupervisorApprovalReminder(User user, int count) {
+        if ("de".equals(user.getPreferredLanguage())) sendReminderEmail(user.getEmailAddress(), "Stundenzettel freigeben",
+                "Hallo " + user.getUsername() + ", " + count + " Stundenzettel warten auf Ihre Freigabe.");
+        else sendSupervisorApprovalReminder(user.getEmailAddress(), user.getUsername(), count);
+    }
+    public void sendArchivalReminder(User user, int count) {
+        if ("de".equals(user.getPreferredLanguage())) sendReminderEmail(user.getEmailAddress(), "Stundenzettel archivieren",
+                "Hallo " + user.getUsername() + ", " + count + " Stundenzettel können archiviert werden.");
+        else sendArchivalReminder(user.getEmailAddress(), user.getUsername(), count);
     }
 }

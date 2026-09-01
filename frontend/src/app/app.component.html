@@ -1,1 +1,10 @@
-<router-outlet></router-outlet>
+<header class="app-header" *ngIf="auth.isAuthenticated()">
+  <strong>{{ language.t('app') }}</strong>
+  <nav>
+    <a routerLink="/timesheets">{{ language.t('timesheets') }}</a>
+    <a routerLink="/contracts">{{ language.t('contracts') }}</a>
+    <button (click)="language.toggle()">{{ language.t('language') }}</button>
+    <button (click)="auth.logout()">{{ language.t('logout') }}</button>
+  </nav>
+</header>
+<main><router-outlet></router-outlet></main>

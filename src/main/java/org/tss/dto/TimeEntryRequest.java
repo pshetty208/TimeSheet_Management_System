@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class TimeEntryRequest {
+    private Long timesheetId;
     @NotNull(message = "Date is required")
     private LocalDate date;
 
@@ -27,4 +28,6 @@ public class TimeEntryRequest {
     public void setDescription(String description) { this.description = description; }
     public String getReportType() { return reportType; }
     public void setReportType(String reportType) { this.reportType = reportType; }
+    public Long getTimesheetId() { return timesheetId; }
+    public void setTimesheetId(Long timesheetId) { this.timesheetId = timesheetId; }
 }

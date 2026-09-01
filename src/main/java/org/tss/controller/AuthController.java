@@ -49,9 +49,17 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
-        validateRole(req.getRole());
-        User u = userService.register(req.getUsername(), req.getPassword(), req.getRole());
+        if (!req.isConsent()) throw new ValidationException("Consent is required before registration");
+        User u = userService.register(req.getUsername(), req.getPassword(), "EMPLOYEE");
+        applyProfile(u, req, false);
+        userRepository.save(u);
         return ResponseEntity.status(HttpStatus.CREATED).body(u.getUsername());
+    }
+
+    public static void applyProfile(User u, RegisterRequest req, boolean allowStaff) {
+        u.setFirstName(req.getFirstName()); u.setLastName(req.getLastName()); u.setEmailAddress(req.getEmailAddress());
+        u.setConsent(req.isConsent()); u.setUniversityStaff(allowStaff && req.isUniversityStaff());
+        u.setPreferredLanguage("de".equals(req.getPreferredLanguage()) ? "de" : "en");
     }
 
     private void validateRole(String role) {

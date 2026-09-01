@@ -23,3 +23,8 @@ button:focus {
 input:focus {
   outline: none;
 }
+.app-header { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; background:#183153; color:white; gap:1rem; }
+.app-header nav { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; }
+.app-header a, .app-header button { color:white; background:transparent; border:1px solid #ffffff55; border-radius:4px; padding:.5rem .75rem; cursor:pointer; }
+main { min-height:calc(100vh - 64px); }
+@media (max-width: 640px) { .app-header { align-items:flex-start; flex-direction:column; padding:1rem; } .app-header nav { width:100%; } }
