@@ -54,6 +54,10 @@ export class TimeSheetsComponent implements OnInit {
     return status.replace(/_/g, ' ');
   }
   reported(ts: TimeSheet): number { return ts.entries.reduce((sum, entry) => sum + entry.hours, 0); }
+  progress(ts: TimeSheet): number { return ts.hoursDue ? Math.min(100, (this.reported(ts) / ts.hoursDue) * 100) : 0; }
+  get openCount(): number { return this.timesheets.filter(ts => ts.status === 'IN_PROGRESS').length; }
+  get pendingCount(): number { return this.timesheets.filter(ts => ts.status === 'SIGNED_BY_EMPLOYEE').length; }
+  get totalReported(): number { return this.timesheets.reduce((sum, ts) => sum + this.reported(ts), 0); }
 
   signByEmployee(id: number) {
     this.timeSheetService.signByEmployee(id).subscribe(

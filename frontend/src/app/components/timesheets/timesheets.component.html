@@ -1,57 +1,11 @@
-<div class="timesheets-container">
-  <h2>TimeSheets</h2>
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-  <div *ngIf="loading" class="loading">Loading timesheets...</div>
-  
-  <table *ngIf="!loading && timesheets.length > 0" class="timesheets-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Employee</th>
-        <th>Period</th>
-        <th>Status</th>
-        <th>Due / Reported</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let ts of timesheets">
-        <td>{{ ts.id }}</td>
-        <td>{{ ts.contract.employee.username }}</td>
-        <td>{{ ts.periodStart }} to {{ ts.periodEnd }}</td>
-        <td>
-          <span [ngClass]="'status ' + ts.status.toLowerCase()">
-            {{ formatStatus(ts.status) }}
-          </span>
-        </td>
-        <td>{{ ts.hoursDue | number:'1.1-2' }} / {{ reported(ts) | number:'1.1-2' }}</td>
-        <td>
-          <button *ngIf="ts.status === 'IN_PROGRESS' && authService.hasRole('EMPLOYEE')" (click)="select(ts)" class="btn btn-sm">Report work</button>
-          <button *ngIf="ts.status === 'IN_PROGRESS' && authService.hasRole('EMPLOYEE')" (click)="signByEmployee(ts.id)"
-            class="btn btn-sm btn-primary">Sign by Employee</button>
-          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && authService.hasRole('EMPLOYEE')" (click)="revoke(ts.id)" class="btn btn-sm">Revoke</button>
-          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && (authService.hasRole('SUPERVISOR') || authService.hasRole('ADMINISTRATOR'))" (click)="signBySupervisor(ts.id)"
-            class="btn btn-sm btn-primary">Sign by Supervisor</button>
-          <button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && (authService.hasRole('SUPERVISOR') || authService.hasRole('ASSISTANT'))" (click)="requestChanges(ts.id)" class="btn btn-sm">Request changes</button>
-          <button *ngIf="ts.status === 'SIGNED_BY_SUPERVISOR' && (authService.hasRole('SECRETARY') || authService.hasRole('ADMINISTRATOR'))" (click)="archive(ts.id)"
-            class="btn btn-sm btn-success">Archive</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div *ngIf="!loading && timesheets.length === 0" class="no-data">
-    No timesheets found
-  </div>
+<div class="page-shell">
+  <header class="page-heading"><div><p class="eyebrow">Time tracking</p><h1>Timesheets</h1><p>Review working periods, report time and keep approvals moving.</p></div><div class="period-note"><span class="pulse"></span> {{ pendingCount }} awaiting action</div></header>
+  <section class="summary-grid" aria-label="Timesheet summary"><article><span>Total periods</span><strong>{{ timesheets.length }}</strong><small>Visible to you</small></article><article><span>In progress</span><strong>{{ openCount }}</strong><small>Ready for entries</small></article><article><span>Hours reported</span><strong>{{ totalReported | number:'1.1-1' }}</strong><small>Across all periods</small></article><article class="accent-card"><span>Awaiting approval</span><strong>{{ pendingCount }}</strong><small>Needs attention</small></article></section>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div><div *ngIf="loading" class="loading">Loading timesheets...</div>
+  <section *ngIf="!loading && timesheets.length > 0" class="data-card"><div class="card-heading"><div><h2>All periods</h2><p>{{ timesheets.length }} timesheets in your workspace</p></div><span class="view-label">CURRENT VIEW</span></div><div class="table-scroll"><table class="timesheets-table"><thead><tr><th>Employee & ID</th><th>Period</th><th>Status</th><th>Progress</th><th>Actions</th></tr></thead><tbody><tr *ngFor="let ts of timesheets">
+    <td><div class="person"><span>{{ ts.contract.employee.username.charAt(0) | uppercase }}</span><div><strong>{{ ts.contract.employee.username }}</strong><small>Timesheet #{{ ts.id }}</small></div></div></td><td><strong>{{ ts.periodStart | date:'mediumDate' }}</strong><small class="to-date">to {{ ts.periodEnd | date:'mediumDate' }}</small></td><td><span [ngClass]="'status ' + ts.status.toLowerCase()"><i></i>{{ formatStatus(ts.status) }}</span></td><td><div class="hours"><div><strong>{{ reported(ts) | number:'1.1-2' }}h</strong><small> / {{ ts.hoursDue | number:'1.1-2' }}h</small></div><div class="progress"><span [style.width.%]="progress(ts)"></span></div></div></td>
+    <td><div class="actions"><button *ngIf="ts.status === 'IN_PROGRESS' && authService.hasRole('EMPLOYEE')" (click)="select(ts)" class="btn">Report work</button><button *ngIf="ts.status === 'IN_PROGRESS' && authService.hasRole('EMPLOYEE')" (click)="signByEmployee(ts.id)" class="btn btn-primary">Sign</button><button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && authService.hasRole('EMPLOYEE')" (click)="revoke(ts.id)" class="btn">Revoke</button><button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && (authService.hasRole('SUPERVISOR') || authService.hasRole('ADMINISTRATOR'))" (click)="signBySupervisor(ts.id)" class="btn btn-primary">Approve</button><button *ngIf="ts.status === 'SIGNED_BY_EMPLOYEE' && (authService.hasRole('SUPERVISOR') || authService.hasRole('ASSISTANT'))" (click)="requestChanges(ts.id)" class="btn">Request changes</button><button *ngIf="ts.status === 'SIGNED_BY_SUPERVISOR' && (authService.hasRole('SECRETARY') || authService.hasRole('ADMINISTRATOR'))" (click)="archive(ts.id)" class="btn btn-success">Archive</button><span *ngIf="ts.status === 'ARCHIVED'" class="complete-label">Complete</span></div></td>
+  </tr></tbody></table></div></section>
+  <div *ngIf="!loading && timesheets.length === 0" class="no-data"><span>◷</span><h3>No timesheets yet</h3><p>Timesheets will appear automatically when a contract begins.</p></div>
+  <section class="entry-editor" *ngIf="selected"><div class="editor-heading"><div><p class="eyebrow">New entry</p><h2>Report work</h2><p>{{ selected.periodStart | date:'mediumDate' }} — {{ selected.periodEnd | date:'mediumDate' }}</p></div><button class="close" (click)="selected = null" aria-label="Close editor">×</button></div><div class="entry-form"><label>Entry type<select [(ngModel)]="entry.reportType"><option>WORK</option><option>VACATION</option><option>SICK_LEAVE</option></select></label><label>Date<input type="date" [(ngModel)]="entry.date"></label><label *ngIf="entry.reportType === 'WORK'">Start time<input type="time" [(ngModel)]="entry.startTime"></label><label *ngIf="entry.reportType === 'WORK'">End time<input type="time" [(ngModel)]="entry.endTime"></label><label class="description">Description<input placeholder="What did you work on?" [(ngModel)]="entry.description"></label><button class="save-entry" (click)="addEntry()">Save entry →</button></div><div class="entry-list" *ngIf="selected.entries.length"><h3>Reported entries</h3><ul><li *ngFor="let item of selected.entries"><div><strong>{{ item.date | date:'mediumDate' }}</strong><small>{{ item.reportType.replace('_', ' ') }} · {{ item.hours }}h</small></div><button (click)="deleteEntry(item.id)">Delete</button></li></ul></div></section>
 </div>
-
-<section class="entry-editor" *ngIf="selected">
-  <h3>Report work: {{ selected.periodStart }} - {{ selected.periodEnd }}</h3>
-  <select [(ngModel)]="entry.reportType"><option>WORK</option><option>VACATION</option><option>SICK_LEAVE</option></select>
-  <input type="date" [(ngModel)]="entry.date">
-  <input *ngIf="entry.reportType === 'WORK'" type="time" [(ngModel)]="entry.startTime">
-  <input *ngIf="entry.reportType === 'WORK'" type="time" [(ngModel)]="entry.endTime">
-  <input placeholder="Description" [(ngModel)]="entry.description">
-  <button (click)="addEntry()">Save entry</button>
-  <ul><li *ngFor="let item of selected.entries">{{ item.date }} · {{ item.reportType }} · {{ item.hours }}h <button (click)="deleteEntry(item.id)">Delete</button></li></ul>
-</section>

@@ -69,4 +69,7 @@ export class ContractsComponent implements OnInit {
     this.contractService.create({ ...this.draft, employee, supervisor, assistants:[], secretaries:[] } as any)
       .subscribe(() => this.loadContracts(), e => this.error = e.error?.message || 'Failed to create contract');
   }
+  get activeCount(): number { return this.contracts.filter(c => c.status === 'STARTED').length; }
+  get preparedCount(): number { return this.contracts.filter(c => c.status === 'PREPARED').length; }
+  get weeklyHours(): number { return this.contracts.filter(c => c.status === 'STARTED').reduce((sum, c) => sum + Number(c.workingHoursPerWeek || 0), 0); }
 }

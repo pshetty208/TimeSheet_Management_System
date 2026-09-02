@@ -1,10 +1,15 @@
 <header class="app-header" *ngIf="auth.isAuthenticated()">
-  <strong>{{ language.t('app') }}</strong>
-  <nav>
-    <a routerLink="/timesheets">{{ language.t('timesheets') }}</a>
-    <a routerLink="/contracts">{{ language.t('contracts') }}</a>
-    <button (click)="language.toggle()">{{ language.t('language') }}</button>
-    <button (click)="auth.logout()">{{ language.t('logout') }}</button>
+  <a class="brand" routerLink="/timesheets" aria-label="Timesheet home">
+    <span class="brand-mark" aria-hidden="true">T</span>
+    <span><strong>{{ language.t('app') }}</strong><small>Work time, made simple</small></span>
+  </a>
+  <nav aria-label="Primary navigation">
+    <a routerLink="/timesheets" routerLinkActive="active">{{ language.t('timesheets') }}</a>
+    <a routerLink="/contracts" routerLinkActive="active">{{ language.t('contracts') }}</a>
   </nav>
+  <div class="header-actions">
+    <button class="utility-button" (click)="language.toggle()" aria-label="Change language">{{ language.t('language') }}</button>
+    <button class="logout-button" (click)="auth.logout()">{{ language.t('logout') }}</button>
+  </div>
 </header>
 <main><router-outlet></router-outlet></main>
