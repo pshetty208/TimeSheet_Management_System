@@ -9,7 +9,7 @@
   </nav>
   <div class="header-actions">
     <button class="utility-button" (click)="language.toggle()" aria-label="Change language">{{ language.t('language') }}</button>
-    <button class="logout-button" (click)="auth.logout()">{{ language.t('logout') }}</button>
+    <button class="logout-button" (click)="logout()">{{ language.t('logout') }}</button>
   </div>
 </header>
 <main><router-outlet></router-outlet></main>

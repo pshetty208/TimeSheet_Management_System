@@ -15,5 +15,17 @@ public class AccessService {
                 || c.getSecretaries().stream().anyMatch(x -> same(x,u));
     }
     public boolean timesheet(TimeSheet t, Authentication auth) { return contract(t.getContract(), auth); }
+    public boolean contractManager(Contract c, Authentication auth) {
+        if (isAdmin(auth)) return true;
+        String u = auth.getName();
+        return same(c.getSupervisor(), u) || c.getAssistants().stream().anyMatch(x -> same(x, u));
+    }
+    public boolean contractSecretary(Contract c, Authentication auth) {
+        if (isAdmin(auth)) return true;
+        return c.getSecretaries().stream().anyMatch(x -> same(x, auth.getName()));
+    }
+    private boolean isAdmin(Authentication auth) {
+        return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRATOR"));
+    }
     private boolean same(org.tss.model.User user, String username) { return user != null && username.equals(user.getUsername()); }
 }

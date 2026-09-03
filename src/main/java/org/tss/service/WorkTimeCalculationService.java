@@ -14,7 +14,7 @@ public class WorkTimeCalculationService {
 
     public double hoursDue(Contract contract, LocalDate start, LocalDate end) {
         long days = start.datesUntil(end.plusDays(1))
-                .filter(d -> holidayService.isWorkingDay(d, contract.getWorkingDaysPerWeek())).count();
+                .filter(d -> holidayService.isWorkingDay(d, contract.getWorkingDaysPerWeek(), contract.getFederalState())).count();
         return days * contract.getWorkingHoursPerWeek() / (double) contract.getWorkingDaysPerWeek();
     }
 

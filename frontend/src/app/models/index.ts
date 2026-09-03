@@ -36,6 +36,26 @@ export interface Contract {
   vacationDaysPerYear: number;
   archiveDurationMonths: number;
   terminationDate?: string;
+  federalState: string;
+  assistants: User[];
+  secretaries: User[];
+}
+
+export interface ContractStatistics {
+  contractId: number;
+  hoursDue: number;
+  hoursReported: number;
+  remainingHours: number;
+  vacationHours: number;
+  vacationHoursReported: number;
+}
+
+export interface ContractTerminationPreview {
+  contractId: number;
+  allowed: boolean;
+  inProgressSheets: number;
+  enteredInProgressSheets: number;
+  message: string;
 }
 
 export interface TimeSheet {

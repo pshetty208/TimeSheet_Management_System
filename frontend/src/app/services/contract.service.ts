@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Contract } from '../models';
+import { Contract, ContractStatistics, ContractTerminationPreview } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ContractService {
@@ -36,5 +36,17 @@ export class ContractService {
 
   terminate(id: number): Observable<Contract> {
     return this.http.post<Contract>(`${this.apiUrl}/${id}/terminate`, {});
+  }
+
+  getStatistics(id: number): Observable<ContractStatistics> {
+    return this.http.get<ContractStatistics>(`${this.apiUrl}/${id}/statistics`);
+  }
+
+  getTerminationPreview(id: number): Observable<ContractTerminationPreview> {
+    return this.http.get<ContractTerminationPreview>(`${this.apiUrl}/${id}/termination-preview`);
+  }
+
+  getPrintable(id: number): Observable<string> {
+    return this.http.get(`${environment.apiUrl}/print/contracts/${id}`, { responseType: 'text' });
   }
 }

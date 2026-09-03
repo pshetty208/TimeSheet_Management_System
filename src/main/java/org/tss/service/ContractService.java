@@ -8,6 +8,7 @@ import org.tss.model.Contract;
 import org.tss.repository.ContractRepository;
 import org.tss.repository.TimeSheetRepository;
 import org.tss.dto.ContractStatistics;
+import org.tss.dto.ContractTerminationPreview;
 import org.tss.model.TimeSheet;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -51,6 +52,18 @@ public class ContractService {
         contractRepository.deleteById(id);
     }
 
+    public Contract updatePrepared(Contract existing, Contract input) {
+        if (!"PREPARED".equals(existing.getStatus())) throw new InvalidStateTransitionException("Can only update PREPARED contracts");
+        existing.setName(input.getName());
+        existing.setEmployee(input.getEmployee()); existing.setSupervisor(input.getSupervisor());
+        existing.setAssistants(input.getAssistants()); existing.setSecretaries(input.getSecretaries());
+        existing.setStartDate(input.getStartDate()); existing.setEndDate(input.getEndDate());
+        existing.setFrequency(input.getFrequency()); existing.setWorkingHoursPerWeek(input.getWorkingHoursPerWeek());
+        existing.setWorkingDaysPerWeek(input.getWorkingDaysPerWeek()); existing.setVacationDaysPerYear(input.getVacationDaysPerYear());
+        existing.setArchiveDurationMonths(input.getArchiveDurationMonths()); existing.setFederalState(input.getFederalState());
+        return save(existing);
+    }
+
     @Transactional
     public Contract startContract(Long id) {
         Contract c = findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
@@ -70,8 +83,8 @@ public class ContractService {
             throw new InvalidStateTransitionException("Can only terminate STARTED contracts");
         }
         List<TimeSheet> sheets = timeSheetRepository.findByContractIdOrderByPeriodStart(id);
-        if (sheets.stream().anyMatch(t -> "SIGNED_BY_EMPLOYEE".equals(t.getStatus())))
-            throw new InvalidStateTransitionException("Employee-signed timesheets must be approved or returned first");
+        ContractTerminationPreview preview = terminationPreview(id);
+        if (!preview.allowed()) throw new InvalidStateTransitionException(preview.message());
         sheets.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus())).forEach(timeSheetRepository::delete);
         c.setStatus("TERMINATED");
         c.setTerminationDate(LocalDate.now());
@@ -87,6 +100,19 @@ public class ContractService {
                 .filter(e -> "VACATION".equals(e.getReportType())).mapToDouble(e -> e.getHours()).sum();
         return new ContractStatistics(id, due, reported, due - reported,
                 calculations.vacationHours(c), vacationReported);
+    }
+
+    public ContractTerminationPreview terminationPreview(Long id) {
+        Contract c = findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!"STARTED".equals(c.getStatus())) return new ContractTerminationPreview(id, false, 0, 0, "Only STARTED contracts can be terminated");
+        List<TimeSheet> sheets = timeSheetRepository.findByContractIdOrderByPeriodStart(id);
+        boolean allowed = sheets.stream().allMatch(t -> List.of("SIGNED_BY_SUPERVISOR", "IN_PROGRESS", "ARCHIVED").contains(t.getStatus()));
+        int open = (int) sheets.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus())).count();
+        int entered = (int) sheets.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus()) && !t.getEntries().isEmpty()).count();
+        String message = !allowed ? "Employee-signed timesheets must be approved or returned first"
+                : entered > 0 ? entered + " in-progress timesheet(s) contain entries and will be deleted"
+                : open + " in-progress timesheet(s) will be deleted";
+        return new ContractTerminationPreview(id, allowed, open, entered, message);
     }
 
     private void generateTimeSheets(Contract c) {
@@ -130,6 +156,9 @@ public class ContractService {
         if (c.getVacationEntitlement() < 0) {
             throw new ValidationException("Vacation entitlement cannot be negative");
         }
+        if (c.getFederalState() == null || !HolidayService.SUPPORTED_STATES.contains(c.getFederalState().toUpperCase()))
+            throw new ValidationException("Federal state must be a valid German state code");
+        if (c.getArchiveDurationMonths() < 1) throw new ValidationException("Archive duration must be at least one month");
         if (c.getSupervisor() == null || !c.getSupervisor().isUniversityStaff())
             throw new ValidationException("Supervisor must be university staff");
         if (c.getAssistants().stream().anyMatch(a -> !a.isUniversityStaff()) || c.getSecretaries().stream().anyMatch(s -> !s.isUniversityStaff()))

@@ -48,35 +48,49 @@ public class ContractController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
-    public ResponseEntity<Contract> update(@PathVariable Long id, @Valid @RequestBody Contract c) {
+    public ResponseEntity<Contract> update(@PathVariable Long id, @Valid @RequestBody Contract c, Authentication auth) {
         Contract existing = contractService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Contract not found with id: " + id));
         if (!"PREPARED".equals(existing.getStatus())) {
             throw new IllegalArgumentException("Can only update contracts in PREPARED status");
         }
-        c.setId(existing.getId());
-        return ResponseEntity.ok(contractService.save(c));
+        if (!access.contractManager(existing, auth)) throw new org.tss.exception.UnauthorizedException("Not a manager of this contract");
+        return ResponseEntity.ok(contractService.updatePrepared(existing, c));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
+        Contract c = contractService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contractManager(c, auth)) throw new org.tss.exception.UnauthorizedException("Not a manager of this contract");
         contractService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/start")
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
-    public ResponseEntity<Contract> start(@PathVariable Long id) {
+    public ResponseEntity<Contract> start(@PathVariable Long id, Authentication auth) {
+        Contract existing = contractService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contractManager(existing, auth)) throw new org.tss.exception.UnauthorizedException("Not a manager of this contract");
         Contract c = contractService.startContract(id);
         return ResponseEntity.ok(c);
     }
 
     @PostMapping("/{id}/terminate")
-    @PreAuthorize("hasAnyRole('SUPERVISOR', 'ADMINISTRATOR')")
-    public ResponseEntity<Contract> terminate(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
+    public ResponseEntity<Contract> terminate(@PathVariable Long id, Authentication auth) {
+        Contract existing = contractService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contractManager(existing, auth)) throw new org.tss.exception.UnauthorizedException("Not a manager of this contract");
         Contract c = contractService.terminateContract(id);
         return ResponseEntity.ok(c);
+    }
+
+    @GetMapping("/{id}/termination-preview")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
+    public org.tss.dto.ContractTerminationPreview terminationPreview(@PathVariable Long id, Authentication auth) {
+        Contract c = contractService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contractManager(c, auth)) throw new org.tss.exception.UnauthorizedException("Not a manager of this contract");
+        return contractService.terminationPreview(id);
     }
 
     @GetMapping("/{id}/statistics")

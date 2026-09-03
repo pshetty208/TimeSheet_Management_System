@@ -81,7 +81,7 @@ public class ReminderScheduler {
         }
     }
 
-    @Scheduled(fixedDelay = 3600000) // Every hour
+    @Scheduled(fixedDelay = 3600000)
     public void logReminderStats() {
         int inProgress = timeSheetRepository.findAllInProgress().size();
         int signedByEmployee = timeSheetRepository.findAllSignedByEmployee().size();

@@ -7,18 +7,22 @@ import org.springframework.web.util.HtmlUtils;
 import org.tss.exception.ResourceNotFoundException;
 import org.tss.service.ContractService;
 import org.tss.service.TimeSheetService;
+import org.tss.service.AccessService;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/print")
 public class PrintController {
     private final ContractService contracts;
     private final TimeSheetService sheets;
-    public PrintController(ContractService contracts, TimeSheetService sheets) { this.contracts = contracts; this.sheets = sheets; }
+    private final AccessService access;
+    public PrintController(ContractService contracts, TimeSheetService sheets, AccessService access) { this.contracts = contracts; this.sheets = sheets; this.access = access; }
 
     @GetMapping(value="/contracts/{id}", produces=MediaType.TEXT_HTML_VALUE)
     @PreAuthorize("hasAnyRole('SECRETARY','ADMINISTRATOR')")
-    public String contract(@PathVariable Long id) {
+    public String contract(@PathVariable Long id, Authentication auth) {
         var c = contracts.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+        if (!access.contractSecretary(c, auth)) throw new org.tss.exception.UnauthorizedException("Not assigned to this contract");
         return page("Contract " + c.getId(), "<h1>" + esc(c.getName()) + "</h1><p>Employee: " + esc(c.getEmployee().getUsername())
                 + "</p><p>Supervisor: " + esc(c.getSupervisor().getUsername()) + "</p><p>Period: " + c.getStartDate() + " - " + c.getEndDate()
                 + "</p><p>Hours/week: " + c.getWorkingHoursPerWeek() + "</p><p>Status: " + c.getStatus() + "</p>");

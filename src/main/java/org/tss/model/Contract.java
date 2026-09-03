@@ -39,6 +39,7 @@ public class Contract {
     private int workingDaysPerWeek = 5;
     private int vacationDaysPerYear = 20;
     private int archiveDurationMonths = 24;
+    private String federalState = "RP";
     private LocalDate terminationDate;
 
     private String status;
@@ -77,4 +78,6 @@ public class Contract {
     public void setArchiveDurationMonths(int archiveDurationMonths) { this.archiveDurationMonths = archiveDurationMonths; }
     public LocalDate getTerminationDate() { return terminationDate; }
     public void setTerminationDate(LocalDate terminationDate) { this.terminationDate = terminationDate; }
+    public String getFederalState() { return federalState; }
+    public void setFederalState(String federalState) { this.federalState = federalState; }
 }

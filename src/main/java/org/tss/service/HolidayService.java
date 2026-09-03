@@ -10,15 +10,22 @@ import java.util.Set;
 
 @Service
 public class HolidayService {
+    public static final Set<String> SUPPORTED_STATES = Set.of("BW","BY","BE","BB","HB","HH","HE","MV","NI","NW","RP","SL","SN","ST","SH","TH");
     @Value("${tss.holidays.state:RP}")
     private String state = "RP";
 
     public boolean isWorkingDay(LocalDate date, int workingDaysPerWeek) {
+        return isWorkingDay(date, workingDaysPerWeek, state);
+    }
+
+    public boolean isWorkingDay(LocalDate date, int workingDaysPerWeek, String federalState) {
         if (date.getDayOfWeek().getValue() > workingDaysPerWeek) return false;
-        return !holidays(date.getYear(), state).contains(date);
+        return !holidays(date.getYear(), federalState).contains(date);
     }
 
     public Set<LocalDate> holidays(int year, String federalState) {
+        String code = federalState == null ? state : federalState.toUpperCase();
+        if (!SUPPORTED_STATES.contains(code)) throw new IllegalArgumentException("Unsupported German federal state: " + code);
         Set<LocalDate> days = new HashSet<>();
         days.add(LocalDate.of(year, 1, 1));
         days.add(LocalDate.of(year, 5, 1));
@@ -30,12 +37,24 @@ public class HolidayService {
         days.add(easter.plusDays(1));
         days.add(easter.plusDays(39));
         days.add(easter.plusDays(50));
-        if (Set.of("RP", "BW", "BY", "HE", "NW", "SL").contains(federalState)) {
+        if (Set.of("RP", "BW", "BY", "HE", "NW", "SL").contains(code)) {
             days.add(easter.plusDays(60));
         }
-        if (Set.of("BW", "BY", "ST").contains(federalState)) days.add(LocalDate.of(year, 1, 6));
-        if (Set.of("BW", "BY", "NW", "RP", "SL").contains(federalState)) days.add(LocalDate.of(year, 11, 1));
+        if (Set.of("BW", "BY", "ST").contains(code)) days.add(LocalDate.of(year, 1, 6));
+        if (Set.of("BW", "BY", "NW", "RP", "SL").contains(code)) days.add(LocalDate.of(year, 11, 1));
+        if (Set.of("BB", "HB", "HH", "MV", "NI", "SH", "SN", "ST", "TH").contains(code)) days.add(LocalDate.of(year, 10, 31));
+        if (Set.of("BE", "MV").contains(code)) days.add(LocalDate.of(year, 3, 8));
+        if ("SL".equals(code)) days.add(LocalDate.of(year, 8, 15));
+        if ("TH".equals(code)) days.add(LocalDate.of(year, 9, 20));
+        if ("BB".equals(code)) { days.add(easter); days.add(easter.plusDays(49)); }
+        if ("SN".equals(code)) days.add(repentanceDay(year));
         return days;
+    }
+
+    private LocalDate repentanceDay(int year) {
+        LocalDate date = LocalDate.of(year, 11, 23);
+        while (date.getDayOfWeek() != DayOfWeek.WEDNESDAY) date = date.minusDays(1);
+        return date;
     }
 
     private LocalDate easterSunday(int year) {

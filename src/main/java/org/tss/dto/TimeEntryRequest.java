@@ -16,7 +16,7 @@ public class TimeEntryRequest {
     private String description;
 
     @NotBlank(message = "Report type is required")
-    private String reportType; // WORK, VACATION, SICK_LEAVE
+    private String reportType;
 
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }

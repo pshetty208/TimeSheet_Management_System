@@ -16,15 +16,15 @@ const routes: Routes = [
   {
     path: 'contracts',
     component: ContractsComponent,
-    canActivate: [AuthGuard],
-    data: { roles: ['SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR'] }
+    canActivate: [AuthGuard]
   },
   {
     path: 'timesheets',
     component: TimeSheetsComponent,
     canActivate: [AuthGuard]
   },
-  { path: '', redirectTo: '/login', pathMatch: 'full' }
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '**', redirectTo: '/timesheets' }
 ];
 
 @NgModule({
