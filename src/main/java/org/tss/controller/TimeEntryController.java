@@ -11,29 +11,41 @@ import org.tss.model.TimeEntry;
 import org.tss.service.TimeEntryService;
 
 import java.util.List;
+import org.springframework.security.core.Authentication;
+import org.tss.service.AccessService;
+import org.tss.repository.TimeSheetRepository;
 
 @RestController
 @RequestMapping("/api/time-entries")
 public class TimeEntryController {
 
     private final TimeEntryService timeEntryService;
+    private final TimeSheetRepository timeSheets;
+    private final AccessService access;
 
-    public TimeEntryController(TimeEntryService timeEntryService) {
+    public TimeEntryController(TimeEntryService timeEntryService, TimeSheetRepository timeSheets, AccessService access) {
         this.timeEntryService = timeEntryService;
+        this.timeSheets = timeSheets;
+        this.access = access;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
-    public List<TimeEntry> list() {
-        return timeEntryService.findAll();
+    public List<TimeEntry> list(Authentication auth) {
+        return timeEntryService.findAll().stream().filter(entry -> timeSheets.findByEntriesId(entry.getId())
+                .map(sheet -> access.timesheet(sheet, auth)).orElse(false)).toList();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
-    public ResponseEntity<TimeEntry> getById(@PathVariable Long id) {
-        return timeEntryService.findById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<TimeEntry> getById(@PathVariable Long id, Authentication auth) {
+        TimeEntry entry = timeEntryService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("TimeEntry not found with id: " + id));
+        var sheet = timeSheets.findByEntriesId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Owning timesheet not found"));
+        if (!access.timesheet(sheet, auth))
+            throw new org.tss.exception.UnauthorizedException("Not affiliated with this time entry");
+        return ResponseEntity.ok(entry);
     }
 
     @PostMapping

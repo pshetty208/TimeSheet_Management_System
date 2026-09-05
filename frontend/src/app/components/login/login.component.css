@@ -13,6 +13,7 @@
 .story-footer { display:flex;gap:26px;position:relative;z-index:1;color:#dce7eb;font-size:12px;font-weight:650; }
 .login-panel { display:grid;place-items:center;padding:40px; }
 .login-box { width:100%;max-width:440px; }
+.language-button { float:right;border:1px solid var(--border);background:white;color:var(--navy);padding:7px 11px;border-radius:8px;cursor:pointer;font-weight:700; }
 .mobile-brand { display:none;color:var(--navy);margin-bottom:52px; }
 .login-box h2 { margin:0;color:var(--ink);font-size:32px;letter-spacing:-.035em; }
 .login-hint { color:var(--muted);margin:10px 0 34px; }

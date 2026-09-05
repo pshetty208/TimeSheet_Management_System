@@ -29,9 +29,12 @@ public class PrintController {
     }
 
     @GetMapping(value="/timesheets/{id}", produces=MediaType.TEXT_HTML_VALUE)
-    @PreAuthorize("hasAnyRole('SECRETARY','SUPERVISOR','ASSISTANT','ADMINISTRATOR')")
-    public String sheet(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('SECRETARY','ADMINISTRATOR')")
+    public String sheet(@PathVariable Long id, Authentication auth) {
         var t = sheets.findById(id).orElseThrow(() -> new ResourceNotFoundException("Timesheet not found"));
+        if (!access.contractSecretary(t.getContract(), auth)) {
+            throw new org.tss.exception.UnauthorizedException("Not assigned to this contract");
+        }
         StringBuilder rows = new StringBuilder();
         t.getEntries().forEach(e -> rows.append("<tr><td>").append(e.getDate()).append("</td><td>").append(esc(e.getReportType()))
                 .append("</td><td>").append(esc(e.getDescription())).append("</td><td>").append(e.getHours()).append("</td></tr>"));

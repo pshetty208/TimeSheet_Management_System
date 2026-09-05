@@ -33,37 +33,13 @@ public class TimeSheetController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
-    public ResponseEntity<TimeSheet> getById(@PathVariable Long id) {
-        return timeSheetService.findById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<TimeSheet> getById(@PathVariable Long id, Authentication auth) {
+        TimeSheet sheet = timeSheetService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("TimeSheet not found with id: " + id));
-    }
-
-    @PostMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT')")
-    public ResponseEntity<TimeSheet> create(@Valid @RequestBody TimeSheet t) {
-        t.setStatus("IN_PROGRESS");
-        return ResponseEntity.status(HttpStatus.CREATED).body(timeSheetService.save(t));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT')")
-    public ResponseEntity<TimeSheet> update(@PathVariable Long id, @Valid @RequestBody TimeSheet t) {
-        TimeSheet existing = timeSheetService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("TimeSheet not found with id: " + id));
-        if (!"IN_PROGRESS".equals(existing.getStatus())) {
-            throw new IllegalArgumentException("Can only update timesheets in IN_PROGRESS status");
+        if (!access.timesheet(sheet, auth)) {
+            throw new org.tss.exception.UnauthorizedException("Not affiliated with this timesheet");
         }
-        t.setId(existing.getId());
-        t.setStatus("IN_PROGRESS");
-        return ResponseEntity.ok(timeSheetService.save(t));
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMINISTRATOR')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        timeSheetService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(sheet);
     }
 
     @PostMapping("/{id}/sign-employee")
@@ -94,4 +70,14 @@ public class TimeSheetController {
     @PostMapping("/{id}/request-changes")
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ASSISTANT', 'ADMINISTRATOR')")
     public TimeSheet requestChanges(@PathVariable Long id) { return timeSheetService.requestChanges(id); }
+
+    @GetMapping("/{id}/verify-signatures")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'SUPERVISOR', 'ASSISTANT', 'SECRETARY', 'ADMINISTRATOR')")
+    public java.util.Map<String, Boolean> verifySignatures(@PathVariable Long id, Authentication auth) {
+        TimeSheet sheet = timeSheetService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("TimeSheet not found with id: " + id));
+        if (!access.timesheet(sheet, auth))
+            throw new org.tss.exception.UnauthorizedException("Not affiliated with this timesheet");
+        return timeSheetService.verifySignatures(id);
+    }
 }

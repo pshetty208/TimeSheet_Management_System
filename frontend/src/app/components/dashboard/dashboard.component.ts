@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models';
 import { Router } from '@angular/router';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,7 +12,7 @@ import { Router } from '@angular/router';
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, public language: LanguageService) {}
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();

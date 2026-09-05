@@ -3,6 +3,7 @@ import { ContractService } from '../../services/contract.service';
 import { Contract, ContractStatistics, User } from '../../models';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 @Component({ selector: 'app-contracts', templateUrl: './contracts.component.html', styleUrls: ['./contracts.component.css'] })
 export class ContractsComponent implements OnInit {
@@ -12,7 +13,7 @@ export class ContractsComponent implements OnInit {
   readonly states = ['BW','BY','BE','BB','HB','HH','HE','MV','NI','NW','RP','SL','SN','ST','SH','TH'];
   draft: any = this.emptyDraft();
 
-  constructor(private contractService: ContractService, private userService: UserService, public auth: AuthService) {}
+  constructor(private contractService: ContractService, private userService: UserService, public auth: AuthService, public language: LanguageService) {}
   ngOnInit() { this.loadContracts(); if (this.isManager()) this.userService.getAll().subscribe(u => this.users = u); }
 
   emptyDraft() { return { name:'', employeeId:null, supervisorId:null, assistantIds:[], secretaryIds:[], workingHoursPerWeek:10,

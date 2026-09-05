@@ -43,4 +43,8 @@ export class TimeSheetService {
   }
   revoke(id: number): Observable<TimeSheet> { return this.http.post<TimeSheet>(`${this.apiUrl}/${id}/revoke-employee-signature`, {}); }
   requestChanges(id: number): Observable<TimeSheet> { return this.http.post<TimeSheet>(`${this.apiUrl}/${id}/request-changes`, {}); }
+
+  getPrintable(id: number): Observable<string> {
+    return this.http.get(`${environment.apiUrl}/print/timesheets/${id}`, { responseType: 'text' });
+  }
 }

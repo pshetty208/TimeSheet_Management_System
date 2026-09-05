@@ -8,4 +8,8 @@ import { User } from '../models';
 export class UserService {
   constructor(private http: HttpClient) {}
   getAll(): Observable<User[]> { return this.http.get<User[]>(`${environment.apiUrl}/users`); }
+  getMe(): Observable<User> { return this.http.get<User>(`${environment.apiUrl}/users/me`); }
+  updateLanguage(preferredLanguage: string): Observable<User> {
+    return this.http.put<User>(`${environment.apiUrl}/users/me/preferences`, { preferredLanguage });
+  }
 }

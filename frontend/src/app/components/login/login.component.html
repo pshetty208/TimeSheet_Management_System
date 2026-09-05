@@ -2,31 +2,32 @@
   <section class="login-story">
     <div class="story-brand"><span>T</span> TimeSheet</div>
     <div class="story-copy">
-      <p class="eyebrow">University workforce management</p>
-      <h1>Every hour accounted for.<br><em>None of the friction.</em></h1>
-      <p>Manage contracts, submit work and approve timesheets in one clear, reliable workspace.</p>
+      <p class="eyebrow">{{ language.t('universityWorkforce') }}</p>
+      <h1>{{ language.t('loginTitle') }}</h1>
+      <p>{{ language.t('loginIntro') }}</p>
     </div>
-    <div class="story-footer"><span>✓ Holiday-aware</span><span>✓ Secure approvals</span><span>✓ DE / EN</span></div>
+    <div class="story-footer"><span>✓ {{ language.t('holidayAware') }}</span><span>✓ {{ language.t('secureApprovals') }}</span><span>✓ DE / EN</span></div>
   </section>
   <div class="login-panel"><div class="login-box">
     <div class="mobile-brand"><span>T</span> TimeSheet</div>
-    <p class="eyebrow">Welcome back</p>
-    <h2>Sign in to your workspace</h2>
-    <p class="login-hint">Use your university credentials to continue.</p>
+    <button type="button" class="language-button" (click)="language.toggle()">{{ language.t('language') }}</button>
+    <p class="eyebrow">{{ language.t('welcomeBack') }}</p>
+    <h2>{{ language.t('signInWorkspace') }}</h2>
+    <p class="login-hint">{{ language.t('credentials') }}</p>
     <form [formGroup]="loginForm" (ngSubmit)="login()">
       <div class="form-group">
-        <label for="username">Username</label>
-        <input id="username" type="text" formControlName="username" class="form-control" autocomplete="username" placeholder="Enter your username" [ngClass]="{ 'is-invalid': f['username'].invalid && (f['username'].dirty || f['username'].touched) }">
-        <div class="error-text" *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)"><span *ngIf="f['username'].hasError('required')">Username is required</span><span *ngIf="f['username'].hasError('minlength')">Username must be at least 3 characters</span></div>
+        <label for="username">{{ language.t('username') }}</label>
+        <input id="username" type="text" formControlName="username" class="form-control" autocomplete="username" [placeholder]="language.t('enterUsername')" [ngClass]="{ 'is-invalid': f['username'].invalid && (f['username'].dirty || f['username'].touched) }">
+        <div class="error-text" *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)"><span *ngIf="f['username'].hasError('required')">{{ language.t('usernameRequired') }}</span><span *ngIf="f['username'].hasError('minlength')">{{ language.t('usernameLength') }}</span></div>
       </div>
       <div class="form-group">
-        <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" class="form-control" autocomplete="current-password" placeholder="Enter your password" [ngClass]="{ 'is-invalid': f['password'].invalid && (f['password'].dirty || f['password'].touched) }">
-        <div class="error-text" *ngIf="f['password'].invalid && (f['password'].dirty || f['password'].touched)"><span *ngIf="f['password'].hasError('required')">Password is required</span><span *ngIf="f['password'].hasError('minlength')">Password must be at least 6 characters</span></div>
+        <label for="password">{{ language.t('password') }}</label>
+        <input id="password" type="password" formControlName="password" class="form-control" autocomplete="current-password" [placeholder]="language.t('enterPassword')" [ngClass]="{ 'is-invalid': f['password'].invalid && (f['password'].dirty || f['password'].touched) }">
+        <div class="error-text" *ngIf="f['password'].invalid && (f['password'].dirty || f['password'].touched)"><span *ngIf="f['password'].hasError('required')">{{ language.t('passwordRequired') }}</span><span *ngIf="f['password'].hasError('minlength')">{{ language.t('passwordLength') }}</span></div>
       </div>
       <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-      <button type="submit" class="btn btn-primary" [disabled]="loading || loginForm.invalid"><span *ngIf="loading" class="spinner"></span>{{ loading ? 'Signing in...' : 'Sign in' }} <b *ngIf="!loading" aria-hidden="true">→</b></button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading || loginForm.invalid"><span *ngIf="loading" class="spinner"></span>{{ loading ? language.t('signingIn') : language.t('signIn') }} <b *ngIf="!loading" aria-hidden="true">→</b></button>
     </form>
-    <p class="privacy-note">Your account data is protected and only visible to authorised participants.</p>
+    <p class="privacy-note">{{ language.t('privacy') }}</p>
   </div></div>
 </div>

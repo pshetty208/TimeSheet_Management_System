@@ -1,7 +1,7 @@
 <header class="app-header" *ngIf="auth.isAuthenticated()">
   <a class="brand" routerLink="/timesheets" aria-label="Timesheet home">
     <span class="brand-mark" aria-hidden="true">T</span>
-    <span><strong>{{ language.t('app') }}</strong><small>Work time, made simple</small></span>
+    <span><strong>{{ language.t('app') }}</strong><small>{{ language.t('workSimple') }}</small></span>
   </a>
   <nav aria-label="Primary navigation">
     <a routerLink="/timesheets" routerLinkActive="active">{{ language.t('timesheets') }}</a>

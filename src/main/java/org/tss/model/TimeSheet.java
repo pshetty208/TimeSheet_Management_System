@@ -24,8 +24,14 @@ public class TimeSheet {
     private double hoursDue;
     private LocalDate signedByEmployee;
     private LocalDate signedBySupervisor;
+    @Lob
     private String employeeSignature;
+    @Lob
     private String supervisorSignature;
+    @Lob
+    private String employeeSignaturePublicKey;
+    @Lob
+    private String supervisorSignaturePublicKey;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimeEntry> entries = new ArrayList<>();
@@ -54,4 +60,8 @@ public class TimeSheet {
     public void setEmployeeSignature(String employeeSignature) { this.employeeSignature = employeeSignature; }
     public String getSupervisorSignature() { return supervisorSignature; }
     public void setSupervisorSignature(String supervisorSignature) { this.supervisorSignature = supervisorSignature; }
+    public String getEmployeeSignaturePublicKey() { return employeeSignaturePublicKey; }
+    public void setEmployeeSignaturePublicKey(String employeeSignaturePublicKey) { this.employeeSignaturePublicKey = employeeSignaturePublicKey; }
+    public String getSupervisorSignaturePublicKey() { return supervisorSignaturePublicKey; }
+    public void setSupervisorSignaturePublicKey(String supervisorSignaturePublicKey) { this.supervisorSignaturePublicKey = supervisorSignaturePublicKey; }
 }

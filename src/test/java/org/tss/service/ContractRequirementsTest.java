@@ -38,6 +38,19 @@ class ContractRequirementsTest {
         existing.setStatus("STARTED"); assertThrows(InvalidStateTransitionException.class,()->service.updatePrepared(existing,input));
     }
 
+    @Test void cn5ServiceDefaultsNewContractToPrepared() {
+        Contract c=contract(null); when(calculations.vacationHours(c)).thenReturn(80d);
+        Contract saved=service.save(c);
+        assertEquals("PREPARED", saved.getStatus());
+        verify(contracts).save(c);
+    }
+
+    @Test void cn6RejectsNegativeVacationDays() {
+        Contract c=contract("PREPARED"); c.setVacationDaysPerYear(-1);
+        assertThrows(org.tss.exception.ValidationException.class, () -> service.save(c));
+        verify(contracts, never()).save(any());
+    }
+
     @Test void cn7StartGeneratesWeeklyTimesheetsInProgress() {
         Contract c=contract("PREPARED"); c.setId(7L); c.setStartDate(LocalDate.of(2026,2,1)); c.setEndDate(LocalDate.of(2026,2,28)); c.setFrequency("WEEKLY");
         when(contracts.findById(7L)).thenReturn(Optional.of(c)); when(calculations.hoursDue(any(),any(),any())).thenReturn(20d);

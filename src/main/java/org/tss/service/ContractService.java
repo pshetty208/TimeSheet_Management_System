@@ -32,6 +32,9 @@ public class ContractService {
     }
 
     public Contract save(Contract c) {
+        if (c.getStatus() == null || c.getStatus().isBlank()) {
+            c.setStatus("PREPARED");
+        }
         validateContract(c);
         return contractRepository.save(c);
     }
@@ -153,6 +156,8 @@ public class ContractService {
             throw new ValidationException("Frequency must be WEEKLY or MONTHLY");
         if (c.getWorkingDaysPerWeek() < 1 || c.getWorkingDaysPerWeek() > 7)
             throw new ValidationException("Working days per week must be between 1 and 7");
+        if (c.getVacationDaysPerYear() < 0)
+            throw new ValidationException("Vacation days per year cannot be negative");
         if (c.getVacationEntitlement() < 0) {
             throw new ValidationException("Vacation entitlement cannot be negative");
         }

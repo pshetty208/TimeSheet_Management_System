@@ -1,36 +1,33 @@
 <div class="dashboard">
   <nav class="navbar">
-    <div class="navbar-brand">TimeSheet Management System</div>
+    <div class="navbar-brand">{{ language.t('app') }}</div>
     <div class="navbar-menu">
       <div *ngIf="currentUser" class="navbar-info">
-        <span>Welcome, {{ currentUser.username }}</span>
-        <button (click)="logout()" class="btn btn-logout">Logout</button>
+        <span>{{ language.t('welcome') }}, {{ currentUser.username }}</span>
+        <button (click)="logout()" class="btn btn-logout">{{ language.t('logout') }}</button>
       </div>
     </div>
   </nav>
 
   <div class="container">
     <div class="sidebar">
-      <h3>Menu</h3>
+      <h3>{{ language.t('menu') }}</h3>
       <ul>
-        <li><a routerLink="/contracts" routerLinkActive="active">Contracts</a></li>
-        <li><a routerLink="/timesheets" routerLinkActive="active">TimeSheets</a></li>
-        <li><a routerLink="/time-entries" routerLinkActive="active">Time Entries</a></li>
+        <li><a routerLink="/contracts" routerLinkActive="active">{{ language.t('contracts') }}</a></li>
+        <li><a routerLink="/timesheets" routerLinkActive="active">{{ language.t('timesheets') }}</a></li>
+        <li><a routerLink="/time-entries" routerLinkActive="active">{{ language.t('timeEntries') }}</a></li>
       </ul>
     </div>
 
     <div class="content">
       <div class="welcome-card">
-        <h1>Welcome to TimeSheet Management System</h1>
-        <p>Your roles: <strong>{{ currentUser ? currentUser.roles.join(', ') : '' }}</strong></p>
-        <p>Select a menu item from the left to get started.</p>
+        <h1>{{ language.t('welcome') }}: {{ language.t('app') }}</h1>
+        <p>{{ language.t('roles') }}: <strong>{{ currentUser ? currentUser.roles.join(', ') : '' }}</strong></p>
+        <p>{{ language.t('selectMenu') }}</p>
       </div>
 
       <div class="quick-stats" *ngIf="hasRole('ADMINISTRATOR')">
-        <h2>Quick Stats</h2>
-        <div class="stat-box">
-          <p>Coming soon: Dashboard analytics and reports</p>
-        </div>
+        <h2>{{ language.t('quickStats') }}</h2>
       </div>
     </div>
   </div>

@@ -73,4 +73,15 @@ public class EmailService {
                 "Hallo " + user.getUsername() + ", " + count + " Stundenzettel können archiviert werden.");
         else sendArchivalReminder(user.getEmailAddress(), user.getUsername(), count);
     }
+
+    public void sendDailyReminder(User user, int submissions, int approvals, int archives) {
+        boolean german = "de".equals(user.getPreferredLanguage());
+        String subject = german ? "Tägliche Stundenzettel-Erinnerung" : "Daily timesheet reminder";
+        String body = german
+                ? "Hallo " + user.getUsername() + ",\n\nOffene Einreichungen: " + submissions
+                    + "\nOffene Freigaben: " + approvals + "\nOffene Archivierungen: " + archives
+                : "Hello " + user.getUsername() + ",\n\nPending submissions: " + submissions
+                    + "\nPending approvals: " + approvals + "\nPending archives: " + archives;
+        sendReminderEmail(user.getEmailAddress(), subject, body);
+    }
 }

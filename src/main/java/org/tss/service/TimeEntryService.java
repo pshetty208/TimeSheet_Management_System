@@ -53,13 +53,8 @@ public class TimeEntryService {
     public TimeEntry addToTimesheet(Long timesheetId, TimeEntry entry) {
         TimeSheet sheet = editableSheet(timesheetId);
         validateTimeEntry(entry); calculateHours(entry);
-        if ("VACATION".equals(entry.getReportType())) {
-            double used = timeSheetRepository.findByContractIdOrderByPeriodStart(sheet.getContract().getId()).stream()
-                    .flatMap(s -> s.getEntries().stream()).filter(e -> "VACATION".equals(e.getReportType()))
-                    .mapToDouble(TimeEntry::getHours).sum();
-            if (used + entry.getHours() > calculations.vacationHours(sheet.getContract()))
-                throw new ValidationException("Vacation entitlement exceeded");
-        }
+        validateEntryPeriod(sheet, entry);
+        enforceVacationLimit(sheet, entry, null);
         sheet.getEntries().add(entry);
         timeSheetRepository.save(sheet);
         return entry;
@@ -71,7 +66,10 @@ public class TimeEntryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Entry not found in timesheet"));
         entry.setDate(values.getDate()); entry.setStartTime(values.getStartTime()); entry.setEndTime(values.getEndTime());
         entry.setDescription(values.getDescription()); entry.setReportType(values.getReportType());
-        validateTimeEntry(entry); calculateHours(entry); timeSheetRepository.save(sheet); return entry;
+        validateTimeEntry(entry); calculateHours(entry);
+        validateEntryPeriod(sheet, entry);
+        enforceVacationLimit(sheet, entry, entryId);
+        timeSheetRepository.save(sheet); return entry;
     }
 
     public void deleteFromTimesheet(Long timesheetId, Long entryId) {
@@ -86,9 +84,29 @@ public class TimeEntryService {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !access.timesheet(sheet, authentication))
             throw new org.tss.exception.UnauthorizedException("Not affiliated with this timesheet");
+        boolean admin = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMINISTRATOR".equals(a.getAuthority()));
+        if (!admin && !authentication.getName().equals(sheet.getContract().getEmployee().getUsername()))
+            throw new org.tss.exception.UnauthorizedException("Only the contract employee may manage entries");
         if (!"IN_PROGRESS".equals(sheet.getStatus()) || !"STARTED".equals(sheet.getContract().getStatus()))
             throw new ValidationException("Entries may only change on IN_PROGRESS timesheets of STARTED contracts");
         return sheet;
+    }
+
+    private void enforceVacationLimit(TimeSheet sheet, TimeEntry candidate, Long replacedEntryId) {
+        if (!"VACATION".equals(candidate.getReportType())) return;
+        double used = timeSheetRepository.findByContractIdOrderByPeriodStart(sheet.getContract().getId()).stream()
+                .flatMap(s -> s.getEntries().stream())
+                .filter(e -> "VACATION".equals(e.getReportType()))
+                .filter(e -> replacedEntryId == null || !replacedEntryId.equals(e.getId()))
+                .mapToDouble(TimeEntry::getHours).sum();
+        if (used + candidate.getHours() > calculations.vacationHours(sheet.getContract()))
+            throw new ValidationException("Vacation entitlement exceeded");
+    }
+
+    private void validateEntryPeriod(TimeSheet sheet, TimeEntry entry) {
+        if (entry.getDate().isBefore(sheet.getPeriodStart()) || entry.getDate().isAfter(sheet.getPeriodEnd()))
+            throw new ValidationException("Entry date must be within the timesheet period");
     }
 
     private void validateTimeEntry(TimeEntry te) {
