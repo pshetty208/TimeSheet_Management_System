@@ -1,4 +1,4 @@
-# Time Sheet Management System
+# Time Sheet Management System 
 
 A student project for managing employee contracts, working hours, timesheet approvals, reminders, printing, and archiving.
 
